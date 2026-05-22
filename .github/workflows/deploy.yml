@@ -1,0 +1,59 @@
+name: Deploy Multi-Service App to Cloud Run
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  PROJECT_ID: your-gcp-project-id       # 🔴 Replace this
+  REGION: us-central1                   # 🔴 Replace this
+  REPO_NAME: portfolio-repo             # 🔴 Replace this
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker
+      run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+    # --- BACKEND DEPLOYMENT ---
+    - name: Build & Push Backend Image
+      run: |
+        BACKEND_TAG=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/portfolio-backend:${{ github.sha }}
+        docker build -t $BACKEND_TAG ./backend
+        docker push $BACKEND_TAG
+        echo "BACKEND_TAG=$BACKEND_TAG" >> $GITHUB_ENV
+
+    - name: Deploy Backend to Cloud Run
+      uses: google-github-actions/deploy-cloudrun@v2
+      with:
+        service: portfolio-backend
+        region: ${{ env.REGION }}
+        image: ${{ env.BACKEND_TAG }}
+
+    # --- FRONTEND DEPLOYMENT ---
+    - name: Build & Push Frontend Image
+      run: |
+        FRONTEND_TAG=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/portfolio-frontend:${{ github.sha }}
+        docker build -t $FRONTEND_TAG ./frontend
+        docker push $FRONTEND_TAG
+        echo "FRONTEND_TAG=$FRONTEND_TAG" >> $GITHUB_ENV
+
+    - name: Deploy Frontend to Cloud Run
+      uses: google-github-actions/deploy-cloudrun@v2
+      with:
+        service: portfolio-frontend
+        region: ${{ env.REGION }}
+        image: ${{ env.FRONTEND_TAG }}
