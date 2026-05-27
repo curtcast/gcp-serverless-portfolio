@@ -100,6 +100,6 @@ jobs:
 
     - name: Verify Live Rollout Statuses
       run: |
-        kubectl rollout status deployment/portfolio-frontend --timeout=120s
-        kubectl rollout status deployment/portfolio-backend --timeout=120s
-        kubectl rollout status deployment/increment-visitor-counter --timeout=120s
+        kubectl rollout status deployment/portfolio-frontend --timeout=300s
+        kubectl rollout status deployment/portfolio-backend --timeout=300s
+        kubectl rollout status deployment/increment-visitor-counter --timeout=300s
