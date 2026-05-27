@@ -21,10 +21,14 @@ spec:
         image: asia-southeast1-docker.pkg.dev/gcp-serverless-portfolio/gcp-serverless-portfolio/portfolio-backend:latest
         ports:
         - containerPort: 8080
+        # Injected environment configurations
         env:
         - name: FUNCTION_TARGET
           value: "increment_visitor_counter"
-        # Switched to TCP socket check to prevent route 404/500 errors from blocking readiness
+        - name: GCP_PROJECT
+          value: "gcp-serverless-portfolio"
+        - name: GOOGLE_CLOUD_PROJECT
+          value: "gcp-serverless-portfolio"
         livenessProbe:
           tcpSocket:
             port: 8080
@@ -72,7 +76,12 @@ spec:
         image: asia-southeast1-docker.pkg.dev/gcp-serverless-portfolio/gcp-serverless-portfolio/portfolio-backend:latest
         ports:
         - containerPort: 8080
-        # Switched to TCP socket check to prevent route 404/500 errors from blocking readiness
+        # Injected environment configurations
+        env:
+        - name: GCP_PROJECT
+          value: "gcp-serverless-portfolio"
+        - name: GOOGLE_CLOUD_PROJECT
+          value: "gcp-serverless-portfolio"
         livenessProbe:
           tcpSocket:
             port: 8080
