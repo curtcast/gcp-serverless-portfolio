@@ -6,10 +6,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1 # Allows the cluster to drop the old pod instantly to clear connections
+    type: Recreate
   selector:
     matchLabels:
       app: increment-visitor-counter
@@ -40,13 +37,17 @@ spec:
         livenessProbe:
           tcpSocket:
             port: 8080
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 20
         readinessProbe:
           tcpSocket:
             port: 8080
-          initialDelaySeconds: 15
+          initialDelaySeconds: 30
           periodSeconds: 10
+      volumes: # Aligned perfectly as a peer of containers
+      - name: sa-key-volume
+        secret:
+          secretName: firestore-sa-key
 ---
 apiVersion: v1
 kind: Service
@@ -69,10 +70,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1 # Allows the cluster to drop the old pod instantly to clear connections
+    type: Recreate
   selector:
     matchLabels:
       app: portfolio-backend
@@ -101,13 +99,17 @@ spec:
         livenessProbe:
           tcpSocket:
             port: 8080
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 20
         readinessProbe:
           tcpSocket:
             port: 8080
-          initialDelaySeconds: 15
+          initialDelaySeconds: 30
           periodSeconds: 10
+      volumes: # Aligned perfectly as a peer of containers
+      - name: sa-key-volume
+        secret:
+          secretName: firestore-sa-key
 ---
 apiVersion: v1
 kind: Service
@@ -168,3 +170,4 @@ spec:
     targetPort: 8080
   selector:
     app: portfolio-frontend
+
