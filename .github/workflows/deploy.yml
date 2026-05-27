@@ -22,7 +22,7 @@ jobs:
 
     # 🟢 NEW ELEMENT: Set up Python Environment on the runner
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.11'
 
@@ -82,7 +82,7 @@ jobs:
     # ☸️ GKE DEPLOYMENT LAYER
     # ==========================================
     - name: Connect to GKE Cluster
-      uses: google-github-actions/get-gke-credentials@v2
+      uses: google-github-actions/get-gke-credentials@v3
       with:
         cluster_name: 'portfolio-cluster'
         location: '${{ env.REGION }}'
