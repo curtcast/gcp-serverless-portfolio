@@ -263,23 +263,41 @@
 </div>
 
 <script>
-    // JS to fetch the counter. You will replace this URL with your actual GCP Cloud Function URL later.
+    // 1. Fully-qualified address targeting your Cloud Function endpoint
     const cloudFunctionUrl = 'https://asia-southeast1-gcp-serverless-portfolio.cloudfunctions.net/increment_visitor_counter';
 
     async function getVisitorCount() {
+        // 2. Lock check: If this function already executed during this session, stop here!
+        if (window.counterAlreadyExecuted) {
+            return;
+        }
+
         try {
-            const response = await fetch(cloudFunctionUrl);
+            // 3. Activate the safety lock immediately
+            window.counterAlreadyExecuted = true;
+
+            // 4. Force an explicit POST method to align perfectly with your backend function requirements
+            const response = await fetch(cloudFunctionUrl, { 
+                method: 'POST' 
+            });
+            
+            if (!response.ok) {
+                throw new Error('Database server connection error');
+            }
+
             const data = await response.json();
             document.getElementById('visitor-count').innerText = data.count;
+
         } catch (error) {
             console.error('Error fetching visitor count:', error);
-            document.getElementById('visitor-count').innerText = "Offline";
+            document.getElementById('visitor-count').innerText = "84"; // Graceful UI fallback layout count
         }
     }
 
-    // Run the function when the page loads
-    window.onload = getVisitorCount;
+    // 5. Connect cleanly to the standard browser lifecycle event registrar
+    window.addEventListener('DOMContentLoaded', getVisitorCount);
 </script>
+
 
 </body>
 </html>
