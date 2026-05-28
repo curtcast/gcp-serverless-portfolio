@@ -1,4 +1,4 @@
-name: Deploy Multi-Service App to Cloud Run
+name: Deploy Multi-Service App to GKE via Terraform IaC
 
 on:
   push:
@@ -6,11 +6,9 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 
-  PROJECT_ID: gcp-serverless-portfolio      # 🔴 Replace this
-  REGION: asia-southeast1                   # 🔴 Replace this
-  REPO_NAME: gcp-serverless-portfolio            # 🔴 Replace this
-    # 🟢 FIX 1: Opt-in to the new Node.js runtime to clear the warning
-  
+  PROJECT_ID: gcp-serverless-portfolio      
+  REGION: asia-southeast1                   
+  REPO_NAME: gcp-serverless-portfolio            
 
 jobs:
   deploy:
@@ -20,31 +18,49 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5
 
-    # 🟢 NEW ELEMENT: Set up Python Environment on the runner
+    # 1. Set up Python Environment on the runner
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
         python-version: '3.11'
 
-    # 🟢 NEW ELEMENT: Install dependencies and execute test files
+    # 2. Install dependencies and execute test files
     - name: Run Backend Unit Tests
       run: |
         cd backend
         pip install -r requirements.txt
         python -m unittest test_main.py
 
+    # 3. Authenticate securely to Google Cloud Platform
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v3
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+    # 4. Set up Google Cloud CLI tool handles
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v3
 
+    # ==========================================
+    # 🏗️ AUTOMATED TERRAFORM INFRASTRUCTURE LAYER
+    # ==========================================
+    - name: Setup Terraform IaC Engine
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "1.7.0"
+
+    - name: Run Terraform Initialization & Verification
+      run: |
+        cd terraform
+        terraform init
+        terraform apply -auto-approve
+
+    # ==========================================
+    # 📦 DOCKER CONTAINER IMAGES LAYER
+    # ==========================================
     - name: Configure Docker
       run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
-    # --- BACKEND DEPLOYMENT ---
     - name: Build & Push Backend Image
       run: |
         BACKEND_TAG=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/portfolio-backend:${{ github.sha }}
@@ -52,17 +68,6 @@ jobs:
         docker push $BACKEND_TAG
         echo "BACKEND_TAG=$BACKEND_TAG" >> $GITHUB_ENV
 
-    - name: Deploy Backend to Cloud Run
-      uses: google-github-actions/deploy-cloudrun@v3
-      with:
-        service: portfolio-backend
-        region: ${{ env.REGION }}
-        image: ${{ env.BACKEND_TAG }}
-          # 🌟 FORCE FUNCTIONS CONFIGURATION IN CLOUD RUN
-        env_vars: |
-          FUNCTION_TARGET=increment_visitor_counter
-
-    # --- FRONTEND DEPLOYMENT ---
     - name: Build & Push Frontend Image
       run: |
         FRONTEND_TAG=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/portfolio-frontend:${{ github.sha }}
@@ -70,16 +75,8 @@ jobs:
         docker push $FRONTEND_TAG
         echo "FRONTEND_TAG=$FRONTEND_TAG" >> $GITHUB_ENV
 
-    - name: Deploy Frontend to Cloud Run
-      uses: google-github-actions/deploy-cloudrun@v3
-      with:
-        service: portfolio-frontend
-        region: ${{ env.REGION }}
-        image: ${{ env.FRONTEND_TAG }}
-        revision_traffic: 'LATEST=100'
-
     # ==========================================
-    # ☸️ GKE DEPLOYMENT LAYER
+    # ☸️ GKE CLUSTER DEPLOYMENT LAYER
     # ==========================================
     - name: Connect to GKE Cluster
       uses: google-github-actions/get-gke-credentials@v3
@@ -100,7 +97,6 @@ jobs:
         kubectl create secret generic firestore-sa-key \
           --from-literal=credentials.json='${{ secrets.GCP_SA_KEY }}' \
           --dry-run=client -o yaml | kubectl apply -f -
-
 
     - name: Deploy Manifests to GKE Cluster
       run: |
@@ -137,4 +133,3 @@ jobs:
         fi
         
         echo "✅ All microservices rolled out and reached a healthy state successfully!"
-
