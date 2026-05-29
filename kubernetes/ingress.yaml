@@ -9,6 +9,7 @@ metadata:
     networking.gke.io/managed-certificates: "portfolio-managed-cert"
     networking.gke.io/frontend-config: "portfolio-frontend-config"
 spec:
+  ingressClassName: gce
   tls:
   - hosts:
     - pcurtcast.xyz
