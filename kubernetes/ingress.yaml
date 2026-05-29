@@ -9,6 +9,10 @@ metadata:
     networking.gke.io/managed-certificates: "portfolio-managed-cert"
     networking.gke.io/frontend-config: "portfolio-frontend-config"
 spec:
+  tls:
+  - hosts:
+    - pcurtcast.xyz
+    - www.pcurtcast.xyz
   rules:
   - host: pcurtcast.xyz
     http:
@@ -17,7 +21,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: portfolio-frontend-services
+            name: portfolio-frontend-service
             port:
               number: 80
   - host: www.pcurtcast.xyz
@@ -27,6 +31,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: portfolio-frontend
+            name: portfolio-frontend-service
             port:
               number: 80
