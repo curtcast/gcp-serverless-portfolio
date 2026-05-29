@@ -2,9 +2,6 @@ import functions_framework
 from google.cloud import firestore
 import json
 
-# Simulating a breaking change
-raise RuntimeError("Database connection to visitor count Firestore failed!")
-
 # Initialize Firestore Client
 db = firestore.Client()
 
