@@ -4,7 +4,7 @@
 
 A highly available, decoupled, cloud-native microservices portfolio application hosted entirely on Google Cloud Platform (GCP). This project transitions a serverless Cloud Run environment into a fully orchestrated **Google Kubernetes Engine (GKE) Autopilot** cluster managed strictly via **Terraform Infrastructure as Code (IaC)** and automated GitOps pipelines.
 
-🌟 **[Live Project Demo Link](http://34.21.245.85/)** 🌟
+🌟 **[Live Project Demo Link](https://pcurtcast.xyz)** 🌟
 
 ---
 
