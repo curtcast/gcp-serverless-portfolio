@@ -164,7 +164,7 @@ metadata:
   name: portfolio-frontend-service
   namespace: default
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
   - port: 80
     targetPort: 8080

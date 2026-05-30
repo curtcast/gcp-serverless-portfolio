@@ -5,15 +5,11 @@ metadata:
   namespace: default
   annotations:
     kubernetes.io/ingress.class: "gce"
-    # Links the Google-managed certificate to your public gateway
-    networking.gke.io/managed-certificates: "portfolio-managed-cert"
+    kubernetes.io/ingress.global-static-ip-name: "portfolio-static-ip"
     networking.gke.io/frontend-config: "portfolio-frontend-config"
+    networking.gke.io/managed-certificates: "portfolio-managed-cert"
 spec:
   ingressClassName: gce
-  tls:
-  - hosts:
-    - pcurtcast.xyz
-    - www.pcurtcast.xyz
   rules:
   - host: pcurtcast.xyz
     http:
